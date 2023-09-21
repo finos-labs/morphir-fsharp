@@ -1,59 +1,161 @@
-![badge-labs](https://user-images.githubusercontent.com/327285/230928932-7c75f8ed-e57b-41db-9fb7-a292a13a1e58.svg)
+# Morphir.FSharp
 
-# morphir-fsharp
+[Enter useful description for Morphir.FSharp]
 
-Short blurb about what your project does.
+---
 
-## Installation
+## Builds
 
-OS X & Linux:
+GitHub Actions |
+:---: |
+[![GitHub Actions](https://github.com/finos-labs/Morphir.FSharp/workflows/Build%20main/badge.svg)](https://github.com/finos-labs/Morphir.FSharp/actions?query=branch%3Amain) |
+[![Build History](https://buildstats.info/github/chart/finos-labs/Morphir.FSharp)](https://github.com/finos-labs/Morphir.FSharp/actions?query=branch%3Amain) |
+
+## NuGet
+
+Package | Stable | Prerelease
+--- | --- | ---
+Morphir.FSharp | [![NuGet Badge](https://buildstats.info/nuget/Morphir.FSharp)](https://www.nuget.org/packages/Morphir.FSharp/) | [![NuGet Badge](https://buildstats.info/nuget/Morphir.FSharp?includePreReleases=true)](https://www.nuget.org/packages/Morphir.FSharp/)
+
+---
+
+### Developing
+
+Make sure the following **requirements** are installed on your system:
+
+- [dotnet SDK](https://www.microsoft.com/net/download/core) 6.0 or higher
+
+or
+
+- [VSCode Dev Container](https://code.visualstudio.com/docs/remote/containers)
+
+
+---
+
+### Environment Variables
+
+- `CONFIGURATION` will set the [configuration](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-build?tabs=netcore2x#options) of the dotnet commands.  If not set, it will default to Release.
+  - `CONFIGURATION=Debug ./build.sh` will result in `-c` additions to commands such as in `dotnet build -c Debug`
+- `ENABLE_COVERAGE` Will enable running code coverage metrics.  AltCover can have [severe performance degradation](https://github.com/SteveGilham/altcover/issues/57) so code coverage evaluation are disabled by default to speed up the feedback loop.
+  - `ENABLE_COVERAGE=1 ./build.sh` will enable code coverage evaluation
+
+
+---
+
+### Building
+
 
 ```sh
-npm install my-crazy-module --save
+> build.cmd <optional buildtarget> // on windows
+$ ./build.sh  <optional buildtarget>// on unix
 ```
 
-Windows:
+The bin of your library should look similar to:
+
+```
+$ tree src/Morphir.FSharp/bin/
+src/Morphir.FSharp/bin/
+└── Debug
+    └── net6.0
+        ├── Morphir.FSharp.deps.json
+        ├── Morphir.FSharp.dll
+        ├── Morphir.FSharp.pdb
+        └── Morphir.FSharp.xml
+
+```
+
+---
+
+### Build Targets
+
+- `Clean` - Cleans artifact and temp directories.
+- `DotnetRestore` - Runs [dotnet restore](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore?tabs=netcore2x) on the [solution file](https://docs.microsoft.com/en-us/visualstudio/extensibility/internals/solution-dot-sln-file?view=vs-2019).
+- [`DotnetBuild`](#Building) - Runs [dotnet build](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-build?tabs=netcore2x) on the [solution file](https://docs.microsoft.com/en-us/visualstudio/extensibility/internals/solution-dot-sln-file?view=vs-2019).
+- `FSharpAnalyzers` - Runs [BinaryDefense.FSharp.Analyzers](https://github.com/BinaryDefense/BinaryDefense.FSharp.Analyzers).
+- `DotnetTest` - Runs [dotnet test](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test?tabs=netcore21) on the [solution file](https://docs.microsoft.com/en-us/visualstudio/extensibility/internals/solution-dot-sln-file?view=vs-2019).
+- `GenerateCoverageReport` - Code coverage is run during `DotnetTest` and this generates a report via [ReportGenerator](https://github.com/danielpalme/ReportGenerator).
+- `ShowCoverageReport` - Shows the report generated in `GenerateCoverageReport`.
+- `WatchTests` - Runs [dotnet watch](https://docs.microsoft.com/en-us/aspnet/core/tutorials/dotnet-watch?view=aspnetcore-3.0) with the test projects. Useful for rapid feedback loops.
+- `GenerateAssemblyInfo` - Generates [AssemblyInfo](https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualbasic.applicationservices.assemblyinfo?view=netframework-4.8) for libraries.
+- `DotnetPack` - Runs [dotnet pack](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-pack). This includes running [Source Link](https://github.com/dotnet/sourcelink).
+- `SourceLinkTest` - Runs a Source Link test tool to verify Source Links were properly generated.
+- `PublishToNuGet` - Publishes the NuGet packages generated in `DotnetPack` to NuGet via [paket push](https://fsprojects.github.io/Paket/paket-push.html). Runs only from `Github Actions`.
+- `GitRelease` - Creates a commit message with the [Release Notes](https://fake.build/apidocs/v5/fake-core-releasenotes.html) and a git tag via the version in the `Release Notes`.
+- `GitHubRelease` - Publishes a [GitHub Release](https://help.github.com/en/articles/creating-releases) with the Release Notes and any NuGet packages. Runs only from `Github Actions`.
+- `FormatCode` - Runs [Fantomas](https://github.com/fsprojects/fantomas) on the solution file.
+- `CheckFormatCode` - Runs [Fantomas --check](https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html) on the solution file.
+- `BuildDocs` - Generates [Documentation](https://fsprojects.github.io/FSharp.Formatting) from `docsSrc` and the [XML Documentation Comments](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/xmldoc/) from your libraries in `src`.
+- `WatchDocs` - Generates documentation and starts a webserver locally.  It will rebuild and hot reload if it detects any changes made to `docsSrc` files, or libraries in `src`.
+
+---
+
+
+### Releasing
+
+- [Start a git repo with a remote](https://help.github.com/articles/adding-an-existing-project-to-github-using-the-command-line/)
 
 ```sh
-edit autoexec.bat
+git init
+git add .
+git commit -m "Scaffold"
+git branch -M main
+git remote add origin https://github.com/finos-labs/Morphir.FSharp.git
+git push -u origin main
 ```
 
-## Usage example
+- [Create your NuGeT API key](https://docs.microsoft.com/en-us/nuget/nuget-org/publish-a-package#create-api-keys)
+    - Add your NuGet API key as repository secret NUGET_TOKEN to [Actions secrets](https://github.com/finos-labs/Morphir.FSharp/settings/secrets/actions)
 
-A few motivating and useful examples of how your project can be used. Spice this up with code blocks and potentially screenshots / videos ([LiceCap](https://www.cockos.com/licecap/) is great for this kind of thing).
+- Then update the `CHANGELOG.md` with an "Unreleased" section containing release notes for this version, in [KeepAChangelog](https://keepachangelog.com/en/1.1.0/) format.
 
-_For more examples and usage, please refer to the [Wiki][wiki]._
+NOTE: Its highly recommend to add a link to the Pull Request next to the release note that it affects. The reason for this is when the `RELEASE` target is run, it will add these new notes into the body of git commit. GitHub will notice the links and will update the Pull Request with what commit referenced it saying ["added a commit that referenced this pull request"](https://github.com/TheAngryByrd/MiniScaffold/pull/179#ref-commit-837ad59). Since the build script automates the commit message, it will say "Bump Version to x.y.z". The benefit of this is when users goto a Pull Request, it will be clear when and which version those code changes released. Also when reading the `CHANGELOG`, if someone is curious about how or why those changes were made, they can easily discover the work and discussions.
 
-## Development setup
+Here's an example of adding an "Unreleased" section to a `CHANGELOG.md` with a `0.1.0` section already released.
 
-Describe how to install all development dependencies and how to run an automated test-suite of some kind. Potentially do this for multiple platforms.
+```markdown
+## [Unreleased]
+
+### Added
+- Does cool stuff!
+
+### Fixed
+- Fixes that silly oversight
+
+## [0.1.0] - 2017-03-17
+First release
+
+### Added
+- This release already has lots of features
+
+[Unreleased]: https://github.com/finos-labs/Morphir.FSharp/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/finos-labs/Morphir.FSharp/releases/tag/v0.1.0
+```
+
+- You can then use the `GitRelease` target, specifying the version number either in the `RELEASE_VERSION` environment
+  variable, or else as a parameter after the target name.  This will:
+  - update `CHANGELOG.md`, moving changes from the `Unreleased` section into a new `0.2.0` section
+    - if there were any prerelease versions of 0.2.0 in the changelog, it will also collect their changes into the final 0.2.0 entry
+  - make a commit bumping the version:  `Bump version to 0.2.0` and adds the new changelog section to the commit's body
+  - push a git tag
+
+macOS/Linux Parameter:
 
 ```sh
-make install
-npm test
+./build.sh Release 0.2.0
 ```
 
-## Roadmap
+macOS/Linux Environment Variable:
 
-List the roadmap steps; alternatively link the Confluence Wiki page where the project roadmap is published.
+```sh
+RELEASE_VERSION=0.2.0 ./build.sh Release
+```
 
-1. Item 1
-2. Item 2
-3. ....
+- The [Github Action](https://github.com/finos-labs/Morphir.FSharp/blob/main/.github/workflows/publish.yml) will handle the new tag:
+  - publish the package to NuGet
+  - create a GitHub release for that git tag, upload release notes and NuGet packages to GitHub
 
-## Contributing
 
-1. Fork it (<https://github.com/finos/morphir-fsharp/fork>)
-2. Create your feature branch (`git checkout -b feature/fooBar`)
-3. Read our [contribution guidelines](.github/CONTRIBUTING.md) and [Community Code of Conduct](https://www.finos.org/code-of-conduct)
-4. Commit your changes (`git commit -am 'Add some fooBar'`)
-5. Push to the branch (`git push origin feature/fooBar`)
-6. Create a new Pull Request
+### Releasing Documentation
 
-## License
-
-Copyright 2023 FINOS
-
-Distributed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
-
-SPDX-License-Identifier: [Apache-2.0](https://spdx.org/licenses/Apache-2.0)
+- Set Source for "Build and deployment" on [GitHub Pages](https://github.com/finos-labs/Morphir.FSharp/settings/pages) to `GitHub Actions`.
+- Documentation is auto-deployed via [Github Action](https://github.com/finos-labs/Morphir.FSharp/blob/main/.github/workflows/fsdocs-gh-pages.yml) to [Your GitHub Page](https://finos-labs.github.io/Morphir.FSharp/)
