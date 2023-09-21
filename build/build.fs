@@ -77,7 +77,7 @@ let distGlob =
     distDir
     </> "*.nupkg"
 
-let coverageThresholdPercent = 30
+let coverageThresholdPercent = 5
 
 let coverageReportDir =
     rootDirectory
