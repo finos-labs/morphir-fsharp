@@ -1,0 +1,2 @@
+group MSBuild
+   Microsoft.Build.Utilities.Core
